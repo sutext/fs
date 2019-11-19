@@ -1,0 +1,28 @@
+{
+    "name": "@cc/fs",
+    "version": "1.0.0",
+    "description": "An extension of node fs module",
+    "main": "dist/index.js",
+    "scripts": {
+        "test": "tsc && mocha",
+        "prepublishOnly": "npm test"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@code.aliyun.com:npmjs/xfs.git"
+    },
+    "keywords": [
+        "fs",
+        "extension"
+    ],
+    "files": [
+        "dist"
+    ],
+    "author": "supertext@icloud.com",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^12.12.9",
+        "mocha": "^6.2.2",
+        "typescript": "^3.7.2"
+    }
+}
