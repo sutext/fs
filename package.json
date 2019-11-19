@@ -1,5 +1,5 @@
 {
-    "name": "@cc/fs",
+    "name": "@sutxt/fs",
     "version": "1.0.0",
     "description": "An extension of node fs module",
     "main": "dist/index.js",
@@ -9,7 +9,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git@code.aliyun.com:npmjs/xfs.git"
+        "url": "git@github.com:sutext/fs.git"
     },
     "keywords": [
         "fs",
