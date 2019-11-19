@@ -1,6 +1,6 @@
 {
     "name": "@sutxt/fs",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "An extension of node fs module",
     "main": "dist/index.js",
     "scripts": {

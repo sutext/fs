@@ -43,20 +43,6 @@ export const rm = (fileOrdDir: string) => {
     }
 };
 /**
- * @description remove directory recursive
- * @throws dir not exist error
- * @param src The source directory.
- */
-export const rmdir = (src: string) => {
-    if (!fs.existsSync(src)) {
-        throw new Error('The src:(' + src + ') dir not exist!');
-    }
-    if (!fs.statSync(src).isDirectory()) {
-        throw new Error('The src:(' + src + ') is not a directory!');
-    }
-    _rmdir(src);
-};
-/**
  * @description copy file or directory from src to dist
  * @param src the source file or directory
  * @param dist the dist file or directory
@@ -79,6 +65,21 @@ export const cp = (src: string, dist: string) => {
     }
 };
 /**
+ * @description remove directory recursive
+ * @throws dir not exist error
+ * @param src The source directory.
+ */
+export const rmdir = (src: string) => {
+    if (!fs.existsSync(src)) {
+        throw new Error('The src:(' + src + ') dir not exist!');
+    }
+    if (!fs.statSync(src).isDirectory()) {
+        throw new Error('The src:(' + src + ') is not a directory!');
+    }
+    _rmdir(src);
+};
+
+/**
  * @description copy directory recursive.
  * @param src the source directory must be exist
  * @param dist the dist directory must not exist
@@ -95,3 +96,8 @@ export const cpdir = (src: string, dist: string) => {
     }
     _cpdir(src, dist);
 };
+
+export const exist: (path: fs.PathLike) => boolean = fs.existsSync;
+export const stats: (path: fs.PathLike) => void = fs.statSync;
+export const mkdir: (path: fs.PathLike, opts?: string | number | fs.MakeDirectoryOptions) => void = fs.mkdirSync;
+export const write: (path: fs.PathLike, data: any, opts?: fs.WriteFileOptions) => void = fs.writeFileSync;
