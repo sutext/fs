@@ -94,7 +94,7 @@ export const rm = (fileOrdDir: string) => {
     }
 };
 /**
- * @description copy file or directory from src to dist
+ * @description copy file or directory from src to dist synchronous.
  * @param src the source file or directory
  * @param dist the dist file or directory
  * @notice if dist dir not exist the method will try to create
@@ -116,13 +116,13 @@ export const cp = (src: string, dist: string) => {
     }
 };
 /**
- * @description move file or directory to another
+ * @description move file or directory to another synchronous.
  * @param src source file or directory
  * @param dist dist file or directory
  */
 export const mv: (src: fs.PathLike, dist: fs.PathLike) => void = fs.renameSync;
 /**
- * @description gen a md5 hash string for the file
+ * @description gen a md5 hash string for the file synchronous.
  * @param file A path to a file. If a URL is provided, it must use the `file:` protocol.
  */
 export const md5 = (file: fs.PathLike) => {
@@ -131,7 +131,7 @@ export const md5 = (file: fs.PathLike) => {
     return hh.digest('hex');
 };
 /**
- * @description gen a crc32 hash string for the file
+ * @description gen a crc32 hash string for the file synchronous.
  * @notice crc32 number using hex encoding
  * @param file A path to a file. If a URL is provided, it must use the `file:` protocol.
  */
@@ -139,7 +139,7 @@ export const crc = (file: fs.PathLike) => {
     return crc32(fs.readFileSync(file)).toString(16);
 };
 /**
- * @description remove directory recursive
+ * @description remove directory recursive synchronous.
  * @throws dir not exist error
  * @param src The source directory.
  */
@@ -154,7 +154,7 @@ export const rmdir = (src: string) => {
 };
 
 /**
- * @description copy directory recursive.
+ * @description copy directory recursive. synchronous.
  * @param src the source directory must be exist
  * @param dist the dist directory must not exist
  */
@@ -174,3 +174,9 @@ export const exist: (path: fs.PathLike) => boolean = fs.existsSync;
 export const stats: (path: fs.PathLike) => void = fs.statSync;
 export const mkdir: (path: fs.PathLike, opts?: string | number | fs.MakeDirectoryOptions) => void = fs.mkdirSync;
 export const write: (path: fs.PathLike, data: any, opts?: fs.WriteFileOptions) => void = fs.writeFileSync;
+/**
+ * @description read all files from a directory synchronous.
+ * @param A path to a file. If a URL is provided, it must use the `file:` protocol.
+ * @param encode file encoding @default utf8
+ */
+export const files: (dir: fs.PathLike, encode?: BufferEncoding) => string[] = fs.readdirSync;
