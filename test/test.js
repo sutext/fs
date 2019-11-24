@@ -1,8 +1,11 @@
 var xfs = require('../dist/index');
 var assert = require('assert');
-var fstr = 'Sheet';
+var fstr = 'Sheefsdfsdf哈哈哈哈t';
 xfs.mkdir('test1');
 xfs.write('test1/testFile', fstr);
+
+console.log((-42398449 & 0xffffffff).toString(16));
+
 describe('xfs tester', () => {
     it('xfs.cp file', () => {
         xfs.cp('test1/testFile', 'test2/test');

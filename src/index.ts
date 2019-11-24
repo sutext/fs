@@ -136,7 +136,7 @@ export const md5 = (file: fs.PathLike) => {
  * @param file A path to a file. If a URL is provided, it must use the `file:` protocol.
  */
 export const crc = (file: fs.PathLike) => {
-    return crc32(fs.readFileSync(file)).toString(16);
+    return (crc32(fs.readFileSync(file)) >>> 0).toString(16);
 };
 /**
  * @description Synchronously remove directory recursive.
