@@ -65,6 +65,13 @@ export const cp = (src: string, dist: string) => {
     }
 };
 /**
+ * @description move file or directory to another
+ * @param src source file or directory
+ * @param dist dist file or directory
+ */
+export const mv: (src: fs.PathLike, dist: fs.PathLike) => void = fs.renameSync;
+
+/**
  * @description remove directory recursive
  * @throws dir not exist error
  * @param src The source directory.
@@ -96,7 +103,6 @@ export const cpdir = (src: string, dist: string) => {
     }
     _cpdir(src, dist);
 };
-
 export const exist: (path: fs.PathLike) => boolean = fs.existsSync;
 export const stats: (path: fs.PathLike) => void = fs.statSync;
 export const mkdir: (path: fs.PathLike, opts?: string | number | fs.MakeDirectoryOptions) => void = fs.mkdirSync;
