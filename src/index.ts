@@ -1,5 +1,56 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as crypto from 'crypto';
+const crc32 = (function() {
+    function signed_crc_table() {
+        var c = 0;
+        var table = new Array(256);
+        for (var n = 0; n != 256; ++n) {
+            c = n;
+            c = c & 1 ? -306674912 ^ (c >>> 1) : c >>> 1;
+            c = c & 1 ? -306674912 ^ (c >>> 1) : c >>> 1;
+            c = c & 1 ? -306674912 ^ (c >>> 1) : c >>> 1;
+            c = c & 1 ? -306674912 ^ (c >>> 1) : c >>> 1;
+            c = c & 1 ? -306674912 ^ (c >>> 1) : c >>> 1;
+            c = c & 1 ? -306674912 ^ (c >>> 1) : c >>> 1;
+            c = c & 1 ? -306674912 ^ (c >>> 1) : c >>> 1;
+            c = c & 1 ? -306674912 ^ (c >>> 1) : c >>> 1;
+            table[n] = c;
+        }
+        return typeof Int32Array !== 'undefined' ? new Int32Array(table) : table;
+    }
+    var T = signed_crc_table();
+    function crc32_buf_8(buf: Buffer, seed?: number) {
+        var C = seed ^ -1,
+            L = buf.length - 7;
+        for (var i = 0; i < L; ) {
+            C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+            C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+            C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+            C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+            C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+            C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+            C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+            C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+        }
+        while (i < L + 7) C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+        return C ^ -1;
+    }
+    return function crc32_buf(buf: Buffer, seed?: number) {
+        if (buf.length > 10000) return crc32_buf_8(buf, seed);
+        var C = seed ^ -1,
+            L = buf.length - 3;
+        for (var i = 0; i < L; ) {
+            C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+            C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+            C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+            C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+        }
+        while (i < L + 3) C = (C >>> 8) ^ T[(C ^ buf[i++]) & 0xff];
+        return C ^ -1;
+    };
+})();
+
 function _rmdir(dir: string) {
     var files = [];
     if (fs.existsSync(dir)) {
@@ -70,7 +121,23 @@ export const cp = (src: string, dist: string) => {
  * @param dist dist file or directory
  */
 export const mv: (src: fs.PathLike, dist: fs.PathLike) => void = fs.renameSync;
-
+/**
+ * @description gen a md5 hash string for the file
+ * @param file A path to a file. If a URL is provided, it must use the `file:` protocol.
+ */
+export const md5 = (file: fs.PathLike) => {
+    const hh = crypto.createHash('md5');
+    hh.update(fs.readFileSync(file));
+    return hh.digest('hex');
+};
+/**
+ * @description gen a crc32 hash string for the file
+ * @notice crc32 number using hex encoding
+ * @param file A path to a file. If a URL is provided, it must use the `file:` protocol.
+ */
+export const crc = (file: fs.PathLike) => {
+    return crc32(fs.readFileSync(file)).toString(16);
+};
 /**
  * @description remove directory recursive
  * @throws dir not exist error
