@@ -1,6 +1,6 @@
 {
     "name": "@sutxt/fs",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "description": "An extension of node fs module",
     "main": "dist/index.js",
     "scripts": {
@@ -23,6 +23,7 @@
     "devDependencies": {
         "@types/node": "^12.12.9",
         "mocha": "^6.2.2",
-        "typescript": "^3.7.2"
+        "typescript": "^3.7.2",
+        "uglify": "^0.1.5"
     }
 }
