@@ -176,8 +176,17 @@ export const cpdir = (src: string, dist: string) => {
  * @param encoding file encoding @default utf8
  * @returns file content string usring encoding.
  */
-export const read = (file: fs.PathLike, encoding?: BufferEncoding) => {
-    return fs.readFileSync(file).toString(encoding);
+export const read = (file: fs.PathLike, flag?: string, encoding?: BufferEncoding) => {
+    return fs.readFileSync(file, { flag }).toString(encoding);
+};
+/**
+ * @description Synchronously reads the entire contents of a file.
+ * @param A path to a file. If a URL is provided, it must use the `file:` protocol.
+ * @param flag file encoding @default 'r'
+ * @returns file data Buffer
+ */
+export const data = (file: fs.PathLike, flag?: string) => {
+    return fs.readFileSync(file, { flag });
 };
 /**
  * @description Synchronously read all files from dir.
