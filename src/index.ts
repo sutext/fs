@@ -182,7 +182,7 @@ export const read = (file: fs.PathLike, flag?: string, encoding?: BufferEncoding
 /**
  * @description Synchronously reads the entire contents of a file.
  * @param A path to a file. If a URL is provided, it must use the `file:` protocol.
- * @param flag file encoding @default 'r'
+ * @param flag file open flag @default 'r'
  * @returns file data Buffer
  */
 export const data = (file: fs.PathLike, flag?: string) => {
