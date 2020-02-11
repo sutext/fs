@@ -88,7 +88,7 @@ class Dir {
         this._path = path;
         this._maxDeep = maxDeep;
     }
-    public each(block: (file: string, stat: fs.Stats, deep: number) => void, reg?: RegExp) {
+    public each(block: (path: string, stat: fs.Stats, deep: number) => void, reg?: RegExp) {
         const dir = this._path;
         let deep = this._deep;
         const names = fs.readdirSync(dir);
@@ -162,10 +162,10 @@ interface IDir {
     readonly find: (reg: RegExp) => string;
     /**
      * @description Synchronously and Recursively enumerate all file
-     * @param fileFn each file callback function
+     * @param fn each file callback function
      * @param reg the name matcher RegExp as filter
      */
-    readonly each: (fileFn: (file: string, stat: fs.Stats) => string, reg?: RegExp) => void;
+    readonly each: (fn: (path: string, stat: fs.Stats, deep: number) => void, reg?: RegExp) => void;
     /**
      * @description Synchronously and Recursively calculate count of file
      * @param reg the name matcher RegExp as filter
@@ -218,23 +218,30 @@ export const cp = (src: string, dist: string) => {
  * @param src source file or directory
  * @param dist dist file or directory
  */
-export const mv: (src: fs.PathLike, dist: fs.PathLike) => void = fs.renameSync;
+export const mv: (src: string, dist: string) => void = fs.renameSync;
 /**
  * @description Synchronously gen a md5 hash string for the file.
- * @param file A path to a file. If a URL is provided, it must use the `file:` protocol.
+ * @param pathOrData A file path or file data
  */
-export const md5 = (file: fs.PathLike) => {
+export const md5 = (pathOrData: string | Buffer) => {
     const hh = crypto.createHash('md5');
-    hh.update(fs.readFileSync(file));
+    if (pathOrData instanceof Buffer) {
+        hh.update(pathOrData);
+    } else {
+        hh.update(fs.readFileSync(pathOrData));
+    }
     return hh.digest('hex');
 };
 /**
  * @description Synchronously gen a crc32 hash string for the file.
  * @notice crc32 number using hex encoding
- * @param file A path to a file. If a URL is provided, it must use the `file:` protocol.
+ * @param pathOrData A file path or file data
  */
-export const crc = (file: fs.PathLike) => {
-    return (crc32(fs.readFileSync(file)) >>> 0).toString(16);
+export const crc = (pathOrData: string | Buffer) => {
+    if (pathOrData instanceof Buffer) {
+        return (crc32(pathOrData) >>> 0).toString(16);
+    }
+    return (crc32(fs.readFileSync(pathOrData)) >>> 0).toString(16);
 };
 /**
  * @description Synchronously generate a folder handler.
@@ -281,52 +288,51 @@ export const cpdir = (src: string, dist: string) => {
 };
 /**
  * @description Synchronously reads the entire contents of a file.
- * @param A path to a file. If a URL is provided, it must use the `file:` protocol.
+ * @param A path to a file.
  * @param encoding file encoding @default utf8
  * @returns file content string usring encoding.
  */
-export const read = (file: fs.PathLike, flag?: string, encoding?: BufferEncoding) => {
+export const read = (file: string, flag?: string, encoding?: BufferEncoding) => {
     return fs.readFileSync(file, { flag }).toString(encoding);
 };
 /**
  * @description Synchronously reads the entire contents of a file.
- * @param A path to a file. If a URL is provided, it must use the `file:` protocol.
+ * @param A path to a file.
  * @param flag file open flag @default 'r'
  * @returns file data Buffer
  */
-export const data = (file: fs.PathLike, flag?: string) => {
+export const data = (file: string, flag?: string) => {
     return fs.readFileSync(file, { flag });
 };
 /**
  * @description Synchronously read all files from dir.
- * @param A path to a file. If a URL is provided, it must use the `file:` protocol.
+ * @param A path to a file.
  * @param encoding file encoding @default utf8
  * @returns file name array
  */
-export const files: (dir: fs.PathLike, encoding?: BufferEncoding) => string[] = fs.readdirSync;
+export const files: (dir: string, encoding?: BufferEncoding) => string[] = fs.readdirSync;
 /**
  * @description Synchronously tests whether or not the given path exists by checking with the file system.
- * @param path A path to a file or directory. If a URL is provided, it must use the `file:` protocol.
+ * @param path A path to a file or directory.
  * URL support is _experimental_.
  */
-export const exist: (path: fs.PathLike) => boolean = fs.existsSync;
+export const exist: (path: string) => boolean = fs.existsSync;
 /**
  * @description Synchronously get the fs.Stats of given file path
- * @param path A path to a file or directory. If a URL is provided, it must use the `file:` protocol.
+ * @param path A path to a file or directory.
  * URL support is _experimental_.
  */
-export const stats: (path: fs.PathLike) => fs.Stats = fs.statSync;
+export const stats: (path: string) => fs.Stats = fs.statSync;
 /**
  * @description Synchronously create a directory.
- * @param path A path to a file. If a URL is provided, it must use the `file:` protocol.
+ * @param path A path to a file.
  * @param options Either the file mode, or an object optionally specifying the file mode and whether parent folders
  * should be created. If a string is passed, it is parsed as an octal integer. If not specified, defaults to `0o777`.
  */
-export const mkdir: (path: fs.PathLike, opts?: string | number | fs.MakeDirectoryOptions) => void = fs.mkdirSync;
+export const mkdir: (path: string, opts?: string | number | fs.MakeDirectoryOptions) => void = fs.mkdirSync;
 /**
  * @description Synchronously writes data to a file, replacing the file if it already exists.
- * @param path A path to a file. If a URL is provided, it must use the `file:` protocol.
- * URL support is _experimental_.
+ * @param path A path to a file.
  * If a file descriptor is provided, the underlying file will _not_ be closed automatically.
  * @param data The data to write. If something other than a Buffer or Uint8Array is provided, the value is coerced to a string.
  * @param opts Either the encoding for the file, or an object optionally specifying the encoding, file mode, and flag.
@@ -335,4 +341,4 @@ export const mkdir: (path: fs.PathLike, opts?: string | number | fs.MakeDirector
  * If `mode` is a string, it is parsed as an octal integer.
  * If `flag` is not supplied, the default of `'w'` is used.
  */
-export const write: (path: fs.PathLike, data: any, opts?: fs.WriteFileOptions) => void = fs.writeFileSync;
+export const write: (path: string, data: any, opts?: fs.WriteFileOptions) => void = fs.writeFileSync;
