@@ -55,4 +55,9 @@ describe('xfs tester', () => {
         assert.equal(xfs.exist('test3'), false);
         assert.equal(xfs.exist('test4'), false);
     });
+    it('xfs.dir', () => {
+        var dir = xfs.dir('.', 1);
+        var reg = /.+(\.json)$/;
+        assert.equal(dir.count(reg), 4);
+    });
 });

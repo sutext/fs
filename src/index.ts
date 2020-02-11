@@ -79,6 +79,104 @@ function _cpdir(s: string, d: string) {
         }
     });
 }
+class Dir {
+    private _path: string;
+    private _deep: number;
+    private _maxDeep: number;
+    constructor(path: string, deep: number, maxDeep: number) {
+        this._deep = deep;
+        this._path = path;
+        this._maxDeep = maxDeep;
+    }
+    public each(block: (file: string, stat: fs.Stats, deep: number) => void, reg?: RegExp) {
+        const dir = this._path;
+        let deep = this._deep;
+        const names = fs.readdirSync(dir);
+        names.forEach(name => {
+            const file = path.join(dir, name);
+            const stat = fs.statSync(file);
+            if (stat.isDirectory()) {
+                if (deep < this._maxDeep) {
+                    new Dir(file, deep + 1, this._maxDeep).each(block, reg);
+                }
+            } else {
+                if (reg) {
+                    reg.test(name) && block(file, stat, deep);
+                } else {
+                    block(file, stat, deep);
+                }
+            }
+        });
+    }
+    public count(reg?: RegExp) {
+        let count = 0;
+        this.each(() => {
+            count++;
+        }, reg);
+        return count;
+    }
+    public find(reg: RegExp): string {
+        const dir = this._path;
+        let deep = this._deep;
+        const names = fs.readdirSync(dir);
+        for (const name of names) {
+            const file = path.join(dir, name);
+            const stat = fs.statSync(file);
+            if (stat.isDirectory()) {
+                if (deep < this._maxDeep) {
+                    return new Dir(file, deep + 1, this._maxDeep).find(reg);
+                }
+            } else {
+                if (reg.test(name)) {
+                    return file;
+                }
+            }
+        }
+    }
+    public search(reg: RegExp) {
+        const dir = this._path;
+        let deep = this._deep;
+        const names = fs.readdirSync(dir);
+        const result = [];
+        for (const name of names) {
+            const file = path.join(dir, name);
+            const stat = fs.statSync(file);
+            if (stat.isDirectory()) {
+                if (deep < this._maxDeep) {
+                    result.push.apply(result, new Dir(file, deep + 1, this._maxDeep).search(reg));
+                }
+            } else {
+                if (reg.test(name)) {
+                    result.push(file);
+                }
+            }
+        }
+        return result;
+    }
+}
+interface IDir {
+    /**
+     * @description Synchronously and Recursively find a file which name match the reg.
+     * @param reg the name matcher RegExp
+     */
+    readonly find: (reg: RegExp) => string;
+    /**
+     * @description Synchronously and Recursively enumerate all file
+     * @param fileFn each file callback function
+     * @param reg the name matcher RegExp as filter
+     */
+    readonly each: (fileFn: (file: string, stat: fs.Stats) => string, reg?: RegExp) => void;
+    /**
+     * @description Synchronously and Recursively calculate count of file
+     * @param reg the name matcher RegExp as filter
+     */
+    readonly count: (reg?: RegExp) => number;
+    /**
+     * @description Synchronously and Recursively search all files which name match the reg.
+     * @param reg the name matcher RegExp
+     */
+    readonly search: (reg: RegExp) => string[];
+}
 /**
  * @description Remove all of fileOrdDir
  * @param fileOrdDir
@@ -137,6 +235,17 @@ export const md5 = (file: fs.PathLike) => {
  */
 export const crc = (file: fs.PathLike) => {
     return (crc32(fs.readFileSync(file)) >>> 0).toString(16);
+};
+/**
+ * @description Synchronously generate a folder handler.
+ * @param path folder path
+ * @param deep The max recurse deep. @default Number.MAX_SAFE_INTEGER
+ */
+export const dir = (path: string, deep: number = Number.MAX_SAFE_INTEGER): IDir => {
+    if (!fs.statSync(path).isDirectory()) {
+        throw new Error('The dir path:(' + path + ') must be directory!');
+    }
+    return new Dir(path, 1, deep);
 };
 /**
  * @description Synchronously remove directory recursive.
