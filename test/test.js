@@ -3,7 +3,6 @@ var assert = require('assert');
 var fstr = 'Sheefsdfsdf哈哈哈哈t';
 xfs.mkdir('test1');
 xfs.write('test1/testFile', fstr);
-
 console.log((-42398449 & 0xffffffff).toString(16));
 
 describe('xfs tester', () => {
@@ -42,18 +41,19 @@ describe('xfs tester', () => {
     });
     it('xfs.rm dir', () => {
         xfs.rm('test1');
-        assert.equal(xfs.exist('test1'), false);
-    });
-    it('xfs.rm dir', () => {
         xfs.rm('test2');
-        assert.equal(xfs.exist('test2'), false);
-    });
-
-    it('xfs.rmdir', () => {
         xfs.rmdir('test3');
         xfs.rmdir('test4');
+        assert.equal(xfs.exist('test1'), false);
+        assert.equal(xfs.exist('test2'), false);
         assert.equal(xfs.exist('test3'), false);
         assert.equal(xfs.exist('test4'), false);
+        xfs.mkdir('testrecursive/test2/test3', { recursive: true });
+        assert.equal(xfs.exist('testrecursive/test2/test3'), true);
+        xfs.rm('testrecursive/test2/test3');
+        assert.equal(xfs.exist('testrecursive/test2/test3'), false);
+        xfs.rm('testrecursive');
+        assert.equal(xfs.exist('testrecursive'), false);
     });
     it('xfs.dir', () => {
         var dir = xfs.dir('.', 1);

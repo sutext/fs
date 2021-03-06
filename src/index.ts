@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
-const crc32 = (function() {
+const crc32 = (function () {
     function signed_crc_table() {
         var c = 0;
         var table = new Array(256);
@@ -55,7 +55,7 @@ function _rmdir(dir: string) {
     var files = [];
     if (fs.existsSync(dir)) {
         files = fs.readdirSync(dir);
-        files.forEach(function(file) {
+        files.forEach(function (file) {
             var sub = path.join(dir, file);
             if (fs.statSync(sub).isDirectory()) {
                 _rmdir(sub);
@@ -69,7 +69,7 @@ function _rmdir(dir: string) {
 function _cpdir(s: string, d: string) {
     fs.mkdirSync(d);
     var files = fs.readdirSync(s);
-    files.forEach(function(file) {
+    files.forEach(function (file) {
         var srcFile = path.join(s, file);
         var distFile = path.join(d, file);
         if (fs.statSync(srcFile).isDirectory()) {
@@ -78,6 +78,14 @@ function _cpdir(s: string, d: string) {
             fs.copyFileSync(srcFile, distFile);
         }
     });
+}
+function _rmkdir(dir: string, mode?: number | string) {
+    const info = path.parse(path.resolve(dir));
+    if (!fs.existsSync(info.dir)) {
+        _rmkdir(info.dir, mode);
+    }
+    const abs = path.resolve(dir);
+    fs.mkdirSync(abs, mode);
 }
 class Dir {
     private _path: string;
@@ -92,7 +100,7 @@ class Dir {
         const dir = this._path;
         let deep = this._deep;
         const names = fs.readdirSync(dir);
-        names.forEach(name => {
+        names.forEach((name) => {
             const file = path.join(dir, name);
             const stat = fs.statSync(file);
             if (stat.isDirectory()) {
@@ -326,10 +334,25 @@ export const stats: (path: string) => fs.Stats = fs.statSync;
 /**
  * @description Synchronously create a directory.
  * @param path A path to a file.
- * @param options Either the file mode, or an object optionally specifying the file mode and whether parent folders
- * should be created. If a string is passed, it is parsed as an octal integer. If not specified, defaults to `0o777`.
+ * @param opts The file mode or option object. If a string is passed, it is parsed as an octal integer. If not specified, defaults to `0o777`.
+ * @param opts.recursive If true will create all the parent dir recursively. @notice This is different from core fs module
  */
-export const mkdir: (path: string, opts?: string | number | fs.MakeDirectoryOptions) => void = fs.mkdirSync;
+export const mkdir = (dir: string, opts?: number | string | fs.MakeDirectoryOptions) => {
+    let mode: number | string;
+    let recursive = false;
+    if (typeof opts === 'object') {
+        mode = opts.mode;
+        recursive = !!opts.recursive;
+    } else {
+        mode = opts;
+    }
+    if (recursive) {
+        _rmkdir(dir, mode);
+    } else {
+        fs.mkdirSync(dir, mode);
+    }
+};
+
 /**
  * @description Synchronously writes data to a file, replacing the file if it already exists.
  * @param path A path to a file.
