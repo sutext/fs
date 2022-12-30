@@ -22,7 +22,7 @@
     "license": "ISC",
     "devDependencies": {
         "@types/node": "^12.12.9",
-        "mocha": "^6.2.2",
+        "mocha": "^10.2.0",
         "typescript": "^3.7.2",
         "uglify-js": "^3.6.0"
     }
