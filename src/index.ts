@@ -88,16 +88,16 @@ function _rmkdir(dir: string, mode?: number | string) {
     fs.mkdirSync(abs, mode);
 }
 class Dir {
-    private _path: string;
+    private _root: string;
     private _deep: number;
     private _maxDeep: number;
-    constructor(path: string, deep: number, maxDeep: number) {
+    constructor(root: string, deep: number, maxDeep: number) {
         this._deep = deep;
-        this._path = path;
+        this._root = path.resolve(root);
         this._maxDeep = maxDeep;
     }
-    public each(block: (path: string, stat: fs.Stats, deep: number) => void, reg?: RegExp) {
-        const dir = this._path;
+    public each(block: (root: string, stat: fs.Stats, deep: number) => void, reg?: RegExp|FileFilter) {
+        const dir = this._root;
         let deep = this._deep;
         const names = fs.readdirSync(dir);
         names.forEach((name) => {
@@ -108,23 +108,25 @@ class Dir {
                     new Dir(file, deep + 1, this._maxDeep).each(block, reg);
                 }
             } else {
-                if (reg) {
-                    reg.test(name) && block(file, stat, deep);
+                if (reg instanceof RegExp) {
+                    reg.test(file) && block(file, stat, deep);
+                } else if(reg instanceof Function){
+                    reg(file) && block(file, stat, deep);
                 } else {
                     block(file, stat, deep);
                 }
             }
         });
     }
-    public count(reg?: RegExp) {
+    public count(reg?: RegExp|FileFilter) {
         let count = 0;
         this.each(() => {
             count++;
         }, reg);
         return count;
     }
-    public find(reg: RegExp): string {
-        const dir = this._path;
+    public find(reg: RegExp|FileFilter): string {
+        const dir = this._root;
         let deep = this._deep;
         const names = fs.readdirSync(dir);
         for (const name of names) {
@@ -135,14 +137,20 @@ class Dir {
                     return new Dir(file, deep + 1, this._maxDeep).find(reg);
                 }
             } else {
-                if (reg.test(name)) {
-                    return file;
+                if (reg instanceof RegExp){
+                    if (reg.test(file)) {
+                        return file;
+                    }
+                }else if (reg instanceof Function){
+                    if (reg(file)) {
+                        return file;
+                    }
                 }
             }
         }
     }
-    public search(reg: RegExp) {
-        const dir = this._path;
+    public search(reg: RegExp|FileFilter) {
+        const dir = this._root;
         let deep = this._deep;
         const names = fs.readdirSync(dir);
         const result = [];
@@ -154,36 +162,41 @@ class Dir {
                     result.push.apply(result, new Dir(file, deep + 1, this._maxDeep).search(reg));
                 }
             } else {
-                if (reg.test(name)) {
-                    result.push(file);
+                if (reg instanceof RegExp){
+                    reg.test(file) && result.push(file);
+                }else if (reg instanceof Function){
+                    reg(file) && result.push(file);
                 }
             }
         }
         return result;
     }
 }
+
+type FileFilter = (fullPath:string)=>boolean
+
 interface IDir {
     /**
-     * @description Synchronously and Recursively find a file which name match the reg.
-     * @param reg the name matcher RegExp
+     * @description Synchronously and Recursively find a file which filePath match the reg.
+     * @param regOrFilter the filePath matcher RegExp or filter
      */
-    readonly find: (reg: RegExp) => string;
+    readonly find: (regOrFilter: RegExp|FileFilter) => string;
     /**
      * @description Synchronously and Recursively enumerate all file
      * @param fn each file callback function
-     * @param reg the name matcher RegExp as filter
+     * @param regOrFilter the filePath matcher RegExp or filter
      */
-    readonly each: (fn: (path: string, stat: fs.Stats, deep: number) => void, reg?: RegExp) => void;
+    readonly each: (fn: (fullPath: string, stat: fs.Stats, deep: number) => void, regOrFilter?: RegExp|FileFilter) => void;
     /**
      * @description Synchronously and Recursively calculate count of file
-     * @param reg the name matcher RegExp as filter
+     * @param regOrFilter the filePath matcher RegExp or filter
      */
-    readonly count: (reg?: RegExp) => number;
+    readonly count: (regOrFilter?: RegExp|FileFilter) => number;
     /**
-     * @description Synchronously and Recursively search all files which name match the reg.
-     * @param reg the name matcher RegExp
+     * @description Synchronously and Recursively search all files which filePath match the reg.
+     * @param regOrFilter the filePath matcher RegExp  or filter
      */
-    readonly search: (reg: RegExp) => string[];
+    readonly search: (regOrFilter: RegExp|FileFilter) => string[];
 }
 /**
  * @description Remove all of fileOrdDir
@@ -256,11 +269,11 @@ export const crc = (pathOrData: string | Buffer) => {
  * @param path folder path
  * @param deep The max recurse deep. @default Number.MAX_SAFE_INTEGER
  */
-export const dir = (path: string, deep: number = Number.MAX_SAFE_INTEGER): IDir => {
-    if (!fs.statSync(path).isDirectory()) {
-        throw new Error('The dir path:(' + path + ') must be directory!');
+export const dir = (root: string, deep: number = Number.MAX_SAFE_INTEGER): IDir => {
+    if (!fs.statSync(root).isDirectory()) {
+        throw new Error('The dir path:(' + root + ') must be directory!');
     }
-    return new Dir(path, 1, deep);
+    return new Dir(root, 1, deep);
 };
 /**
  * @description Synchronously remove directory recursive.
@@ -298,10 +311,11 @@ export const cpdir = (src: string, dist: string) => {
  * @description Synchronously reads the entire contents of a file.
  * @param A path to a file.
  * @param encoding file encoding @default utf8
+ * @param flag If a flag is not provided, it defaults to `'r'`.
  * @returns file content string usring encoding.
  */
 export const read = (file: string, flag?: string, encoding?: BufferEncoding) => {
-    return fs.readFileSync(file, { flag }).toString(encoding);
+    return fs.readFileSync(file, { flag ,encoding: encoding  || 'utf-8'})
 };
 /**
  * @description Synchronously reads the entire contents of a file.

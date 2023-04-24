@@ -58,6 +58,15 @@ describe('xfs tester', () => {
     it('xfs.dir', () => {
         var dir = xfs.dir('.', 1);
         var reg = /.+(\.json)$/;
+        var test = function(name){
+            return reg.test(name)
+        }
         assert.equal(dir.count(reg), 4);
+        assert.equal(dir.count(test), 4);
+        var cfg = dir.find(function(name){
+            return name.endsWith('tsconfig.json')
+        })
+        assert.ok(cfg.endsWith("tsconfig.json"))
+
     });
 });
